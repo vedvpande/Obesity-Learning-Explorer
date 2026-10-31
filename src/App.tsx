@@ -1,14 +1,10 @@
 import { Route, Routes } from 'react-router'
+import LandingPage from './pages/LandingPage.tsx'
 
 function App() {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <h1 className="text-2xl font-bold">Obesity Learning Explorer</h1>
-        }
-      />
+      <Route path="/" element={<LandingPage />} />
     </Routes>
   )
 }
