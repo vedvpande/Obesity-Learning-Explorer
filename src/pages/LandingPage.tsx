@@ -66,6 +66,14 @@ function LandingPage() {
           For education only. Not medical advice. In an emergency, call your
           local emergency number.
         </p>
+        <p className="mt-2">
+          <Link
+            to="/about"
+            className="font-semibold text-teal-700 underline hover:text-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          >
+            About
+          </Link>
+        </p>
       </footer>
     </div>
   )
