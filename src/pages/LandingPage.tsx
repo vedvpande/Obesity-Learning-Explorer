@@ -34,7 +34,7 @@ function LandingPage() {
             adult obesity trends around the world, with a source you can cite.
           </p>
           <Link
-            to="/app"
+            to="/explore"
             className="mt-8 inline-block rounded-lg bg-teal-700 px-6 py-3 text-base font-semibold text-white hover:bg-teal-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
           >
             Get started
