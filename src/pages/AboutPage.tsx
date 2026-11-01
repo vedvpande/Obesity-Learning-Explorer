@@ -38,9 +38,9 @@ function AboutPage() {
             My Report
           </h2>
           <p className="mt-2 text-slate-700 dark:text-slate-300">
-            Signed-in students can save facts (country, year, rate, source)
-            with a short note, then copy all their citations at once. This
-            saves only facts and notes, never personal health information.
+            Signed-in students can save facts (country, year, rate, source) with
+            a short note, then copy all their citations at once. This saves only
+            facts and notes, never personal health information.
           </p>
         </section>
 

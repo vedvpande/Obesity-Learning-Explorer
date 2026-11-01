@@ -43,10 +43,12 @@ const values: [string, number, number][] = [
   ['AUS', 11.8, 32.3],
 ]
 
-export const rates: RateRow[] = values.flatMap(([countryCode, r1990, r2022]) => [
-  { countryCode, year: 1990, ratePercent: r1990, source: SOURCE },
-  { countryCode, year: 2022, ratePercent: r2022, source: SOURCE },
-])
+export const rates: RateRow[] = values.flatMap(
+  ([countryCode, r1990, r2022]) => [
+    { countryCode, year: 1990, ratePercent: r1990, source: SOURCE },
+    { countryCode, year: 2022, ratePercent: r2022, source: SOURCE },
+  ],
+)
 
 export function fetchExploreData(): Promise<ExploreData> {
   return new Promise((resolve) => {
