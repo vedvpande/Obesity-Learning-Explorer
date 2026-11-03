@@ -35,7 +35,7 @@ function AboutPage() {
 
         <section aria-labelledby="report-heading" className="mt-8">
           <h2 id="report-heading" className="text-xl font-semibold">
-            My Report
+            Data
           </h2>
           <p className="mt-2 text-slate-700 dark:text-slate-300">
             Signed-in students can save facts (country, year, rate, source) with
