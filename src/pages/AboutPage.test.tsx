@@ -32,9 +32,9 @@ test('explains what the app is and that it is a learning project', () => {
   expect(screen.getByText(/built as a learning project/)).toBeInTheDocument()
 })
 
-test('describes My Report and that it saves no health information', () => {
+test('describes the data section and that it saves no health information', () => {
   renderPage()
-  expect(screen.getByRole('heading', { name: 'My Report' })).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: 'Data' })).toBeInTheDocument()
   expect(
     screen.getByText(/never personal health information/),
   ).toBeInTheDocument()
