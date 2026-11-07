@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router'
+import { useAuth } from '../auth/auth.ts'
 import ThemeToggle from './ThemeToggle.tsx'
 
 const focusRing =
@@ -10,9 +11,12 @@ const navItems = [
   { to: '/rankings', label: 'Rankings' },
   { to: '/learn', label: 'Learn' },
   { to: '/about', label: 'About' },
+  { to: '/my-report', label: 'My Report' },
 ]
 
 function Layout() {
+  const { user, signIn, signOut } = useAuth()
+
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100">
       <a
@@ -52,7 +56,14 @@ function Layout() {
               ))}
             </ul>
           </nav>
-          <div className="ml-auto sm:ml-0">
+          <div className="ml-auto flex items-center gap-2 sm:ml-0">
+            <button
+              type="button"
+              onClick={user ? signOut : signIn}
+              className={`rounded-lg border border-slate-400 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:border-slate-500 dark:hover:bg-slate-800 ${focusRing}`}
+            >
+              {user ? 'Sign out' : 'Sign in (demo)'}
+            </button>
             <ThemeToggle />
           </div>
         </div>

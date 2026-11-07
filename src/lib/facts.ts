@@ -13,3 +13,19 @@ export function latestRate(rates: RateRow[], countryCode: string) {
 export function buildFactSentence(country: Country, row: RateRow) {
   return `In ${row.year}, ${row.ratePercent}% of adults (18+) in ${country.name} had obesity. Source: ${row.source}.`
 }
+
+type Citable = {
+  countryName: string
+  year: number
+  ratePercent: number
+  source: string
+}
+
+// One line per fact for "Copy all citations": country, year, rate, source.
+export function buildCitation(fact: Citable) {
+  return `${fact.countryName}, ${fact.year}: ${fact.ratePercent}% of adults (18+) had obesity. Source: ${fact.source}.`
+}
+
+export function buildCitationList(facts: Citable[]) {
+  return facts.map(buildCitation).join('\n')
+}

@@ -1,6 +1,10 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import App from '../App.tsx'
+
+afterEach(() => {
+  localStorage.clear()
+})
 
 const DISCLAIMER =
   'For learning only. This site does not diagnose or give medical advice.'
@@ -19,7 +23,11 @@ const pages = [
   ['/rankings', 'Rankings', 'Rankings'],
   ['/learn', 'Learn', 'Learn'],
   ['/about', 'About Obesity Learning Explorer', 'About'],
+  ['/my-report', 'My Report', 'My Report'],
 ] as const
+
+// My Report needs sign-in; every other page is public.
+const publicPages = pages.filter(([url]) => url !== '/my-report')
 
 test.each(pages)(
   '%s renders its heading inside the shared layout',
@@ -67,7 +75,28 @@ test('"Skip to main content" is the first thing Tab reaches', () => {
   expect(screen.getByRole('main')).toHaveAttribute('id', 'main')
 })
 
-test.each(pages)('%s does not ask the user to sign in', (url) => {
-  renderAt(url)
-  expect(screen.queryByText(/sign in|log in/i)).not.toBeInTheDocument()
+test.each(publicPages)(
+  '%s works signed out: no sign-in gate or redirect',
+  (url, heading) => {
+    renderAt(url)
+    const main = screen.getByRole('main')
+    expect(
+      within(main).getByRole('heading', { level: 1, name: heading }),
+    ).toBeInTheDocument()
+    // Signing in is optional (header button), never required to see the page.
+    expect(
+      within(main).queryByText(/sign in to (see|continue)/i),
+    ).not.toBeInTheDocument()
+  },
+)
+
+test('header offers an optional sign-in that toggles to Sign out', () => {
+  renderAt('/')
+  const button = screen.getByRole('button', { name: 'Sign in (demo)' })
+  fireEvent.click(button)
+  expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  expect(
+    screen.getByRole('button', { name: 'Sign in (demo)' }),
+  ).toBeInTheDocument()
 })
