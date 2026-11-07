@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router'
+import SaveFactForm from '../components/SaveFactForm.tsx'
 import { useExploreData } from '../hooks/useExploreData.ts'
 import { buildFactSentence, latestRate } from '../lib/facts.ts'
 
@@ -100,6 +101,7 @@ function ExplorePage() {
               >
                 Copy this fact
               </button>
+              {country && row && <SaveFactForm country={country} row={row} />}
             </section>
           )}
 

@@ -1,5 +1,5 @@
 import type { Country, RateRow } from '../mocks/countries.ts'
-import { buildFactSentence, latestRate } from './facts.ts'
+import { buildCitationList, buildFactSentence, latestRate } from './facts.ts'
 
 const uk: Country = { code: 'GBR', name: 'United Kingdom' }
 
@@ -150,5 +150,23 @@ describe('buildFactSentence', () => {
     expect(buildFactSentence(uk, row({ source: 'WHO.' }))).toMatch(
       /Source: WHO\.\.$/,
     )
+  })
+})
+
+describe('buildCitationList', () => {
+  test('one citation per line with country, year, rate and source', () => {
+    expect(
+      buildCitationList([
+        { countryName: 'France', year: 2022, ratePercent: 17.2, source: 'S1' },
+        { countryName: 'Japan', year: 1990, ratePercent: 2.1, source: 'S2' },
+      ]),
+    ).toBe(
+      'France, 2022: 17.2% of adults (18+) had obesity. Source: S1.\n' +
+        'Japan, 1990: 2.1% of adults (18+) had obesity. Source: S2.',
+    )
+  })
+
+  test('an empty list gives an empty string', () => {
+    expect(buildCitationList([])).toBe('')
   })
 })
