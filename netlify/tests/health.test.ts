@@ -1,5 +1,5 @@
 // @vitest-environment node
-import health, { config } from './health.ts'
+import health, { config } from '../functions/health.ts'
 
 afterEach(() => {
   vi.unstubAllEnvs()
