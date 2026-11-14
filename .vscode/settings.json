@@ -1,0 +1,6 @@
+{
+  // Use the project's TypeScript (node_modules), not VS Code's built-in copy,
+  // so newer tsconfig options like "erasableSyntaxOnly" are recognised.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
+}
