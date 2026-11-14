@@ -6,26 +6,25 @@ afterEach(() => {
   document.documentElement.classList.remove('dark')
 })
 
-test('starts in light mode when nothing is saved', () => {
+test('in light mode the button offers "Dark mode" with a moon icon', () => {
   render(<ThemeToggle />)
-  expect(screen.getByRole('button', { name: 'Dark mode' })).toHaveAttribute(
-    'aria-pressed',
-    'false',
-  )
+  const button = screen.getByRole('button', { name: 'Dark mode' })
+  expect(button.querySelector('svg path')).toBeInTheDocument()
+  expect(button.querySelector('svg circle')).not.toBeInTheDocument()
   expect(document.documentElement).not.toHaveClass('dark')
 })
 
-test('clicking switches to dark, then back to light', () => {
+test('clicking switches to dark (label "Light mode", sun icon), then back', () => {
   render(<ThemeToggle />)
-  const button = screen.getByRole('button', { name: 'Dark mode' })
 
-  fireEvent.click(button)
-  expect(button).toHaveAttribute('aria-pressed', 'true')
+  fireEvent.click(screen.getByRole('button', { name: 'Dark mode' }))
+  const lightButton = screen.getByRole('button', { name: 'Light mode' })
+  expect(lightButton.querySelector('svg circle')).toBeInTheDocument()
   expect(document.documentElement).toHaveClass('dark')
   expect(localStorage.getItem('theme')).toBe('dark')
 
-  fireEvent.click(button)
-  expect(button).toHaveAttribute('aria-pressed', 'false')
+  fireEvent.click(lightButton)
+  expect(screen.getByRole('button', { name: 'Dark mode' })).toBeInTheDocument()
   expect(document.documentElement).not.toHaveClass('dark')
   expect(localStorage.getItem('theme')).toBe('light')
 })
@@ -33,9 +32,14 @@ test('clicking switches to dark, then back to light', () => {
 test('uses the saved choice on load', () => {
   localStorage.setItem('theme', 'dark')
   render(<ThemeToggle />)
-  expect(screen.getByRole('button', { name: 'Dark mode' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
+  expect(screen.getByRole('button', { name: 'Light mode' })).toBeInTheDocument()
   expect(document.documentElement).toHaveClass('dark')
+})
+
+test('icons are hidden from screen readers so the name is just the label', () => {
+  render(<ThemeToggle />)
+  const svg = screen
+    .getByRole('button', { name: 'Dark mode' })
+    .querySelector('svg')
+  expect(svg).toHaveAttribute('aria-hidden', 'true')
 })
