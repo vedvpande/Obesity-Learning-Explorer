@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, count, desc, eq } from 'drizzle-orm'
 import { countries, obesityRates, savedFacts } from '../../src/db/schema.ts'
 import { currentUserId } from '../lib/auth.ts'
 import { getDb } from '../lib/db.ts'
@@ -15,6 +15,10 @@ import {
   savedFactId,
   updateSavedFact,
 } from '../lib/validation.ts'
+
+// A student report never needs more; it also stops anyone filling the
+// database by scripting POST requests.
+export const MAX_SAVED_FACTS = 200
 
 // The columns every response returns for a saved fact.
 const factColumns = {
@@ -61,6 +65,7 @@ async function list(userId: string) {
       .innerJoin(countries, eq(countries.code, savedFacts.countryCode))
       .where(eq(savedFacts.userId, userId))
       .orderBy(desc(savedFacts.createdAt))
+      .limit(MAX_SAVED_FACTS)
     return json(rows)
   } catch (err) {
     return serverError('GET /api/saved-facts', err)
@@ -74,6 +79,17 @@ async function create(userId: string, body: unknown) {
 
   try {
     const db = getDb()
+    const [mine] = await db
+      .select({ n: count() })
+      .from(savedFacts)
+      .where(eq(savedFacts.userId, userId))
+    if ((mine?.n ?? 0) >= MAX_SAVED_FACTS) {
+      return error(
+        409,
+        `You can save up to ${MAX_SAVED_FACTS} facts. Delete some to save more.`,
+      )
+    }
+
     // Copy the real rate and source from the database, never from the browser.
     const [fact] = await db
       .select({
