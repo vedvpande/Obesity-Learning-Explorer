@@ -2,8 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { useAuth } from '../auth/auth.ts'
 import { NOTE_MAX_LENGTH } from '../lib/savedFactInput.ts'
-import type { Country, RateRow } from '../mocks/countries.ts'
-import { saveFact } from '../mocks/savedFacts.ts'
+import { createSavedFact } from '../api/client.ts'
+import type { Country, RateRow } from '../api/types.ts'
 
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 dark:focus-visible:outline-teal-300'
@@ -37,14 +37,9 @@ function SaveFactForm({ country, row }: Props) {
     e.preventDefault()
     setStatus('saving')
     try {
-      await saveFact(user, {
-        countryCode: country.code,
-        countryName: country.name,
-        year: row.year,
-        ratePercent: row.ratePercent,
-        source: row.source,
-        note,
-      })
+      // The server looks up the rate and source itself, so we only send
+      // which fact (country + year) and the note.
+      await createSavedFact({ countryCode: country.code, year: row.year, note })
       setNote('')
       setStatus('saved')
     } catch (err) {

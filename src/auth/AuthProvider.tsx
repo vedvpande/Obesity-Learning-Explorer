@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import type { MockUser } from '../mocks/savedFacts.ts'
+import type { User } from './auth.ts'
 import { AuthContext, DEMO_USER } from './auth.ts'
 
 const STORAGE_KEY = 'demoSignedIn'
@@ -22,7 +22,7 @@ function remember(signedIn: boolean) {
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(() =>
+  const [user, setUser] = useState<User | null>(() =>
     wasSignedIn() ? DEMO_USER : null,
   )
 

@@ -1,4 +1,4 @@
-import type { RateRow } from '../mocks/countries.ts'
+import type { RateRow } from '../api/types.ts'
 import {
   buildRankingRows,
   formatChange,

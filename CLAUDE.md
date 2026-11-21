@@ -22,12 +22,14 @@ It does not diagnose or give medical advice; it shows a disclaimer.
 
 ## Commands
 
-- npm run dev        start locally with Vite (http://localhost:5173; /api/* runs only on Netlify)
-- npm run lint       ESLint
-- npm run typecheck  tsc --noEmit
-- npm test           Vitest
-- npm run build      production build
-- npm run db:migrate placeholder for now (prints "no migrations yet"); Drizzle comes in Week 5
+- npm run dev         netlify dev: site + /api functions at http://localhost:8888
+- npm run dev:vite    site only with Vite (http://localhost:5173, no /api)
+- npm run lint        ESLint
+- npm run typecheck   tsc --noEmit
+- npm test            Vitest
+- npm run build       production build
+- npm run db:generate Drizzle: create a migration from src/db/schema.ts
+- npm run db:migrate  Drizzle: apply migrations to DATABASE_URL
 
 ## Rules (always follow)
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
-import { buildFactSentence, latestRate } from '../lib/facts.ts'
-import { countries, rates } from '../mocks/countries.ts'
+import { OWID_SOURCE } from '../db/seedData.ts'
+import { buildFactSentence } from '../lib/facts.ts'
 
 const focusRing =
   'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 dark:focus-visible:outline-teal-300'
@@ -9,11 +9,18 @@ const textClass = 'mt-2 text-slate-700 dark:text-slate-300'
 
 export const SUPPORT_URL = 'https://www.beateatingdisorders.org.uk/'
 
-// Same builder as "Copy this fact" on Explore, so the example always matches.
+// Same builder and source as "Copy this fact" on Explore, using the real
+// United Kingdom 2022 value from data/obesity_countries.csv.
 function exampleCitation() {
-  const country = countries.find((c) => c.code === 'GBR')
-  const row = country && latestRate(rates, country.code)
-  return country && row ? buildFactSentence(country, row) : ''
+  return buildFactSentence(
+    { code: 'GBR', name: 'United Kingdom' },
+    {
+      countryCode: 'GBR',
+      year: 2022,
+      ratePercent: 26.99364,
+      source: OWID_SOURCE,
+    },
+  )
 }
 
 function LearnPage() {
