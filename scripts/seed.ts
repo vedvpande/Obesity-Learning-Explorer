@@ -3,6 +3,7 @@
 // creates the fake Demo Student user (id = DEMO_USER_ID). Safe to run again:
 // existing rows are updated, never duplicated. Never prints DATABASE_URL.
 import { readFileSync } from 'node:fs'
+import { z } from 'zod'
 import { neon } from '@neondatabase/serverless'
 import { count, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
@@ -11,7 +12,9 @@ import { OWID_SOURCE, parseRatesCsv } from '../src/db/seedData.ts'
 
 const { DATABASE_URL, DEMO_USER_ID } = process.env
 if (!DATABASE_URL) throw new Error('DATABASE_URL is not set (see .env.example)')
-if (!DEMO_USER_ID || !/^[0-9a-f-]{36}$/.test(DEMO_USER_ID)) {
+// The demo user is only for development and staging, never production.
+const seedDemoUser = process.env.APP_ENV !== 'production'
+if (seedDemoUser && !z.uuid().safeParse(DEMO_USER_ID).success) {
   throw new Error('DEMO_USER_ID must be set to a uuid (see .env.example)')
 }
 
@@ -49,15 +52,17 @@ for (const batch of chunks(parsed.rates, 500)) {
     })
 }
 
-await db
-  .insert(users)
-  .values({
-    id: DEMO_USER_ID,
-    googleSub: 'demo-student',
-    email: 'demo@example.com',
-    name: 'Demo Student',
-  })
-  .onConflictDoNothing()
+if (seedDemoUser && DEMO_USER_ID) {
+  await db
+    .insert(users)
+    .values({
+      id: DEMO_USER_ID,
+      googleSub: 'demo-student',
+      email: 'demo@example.com',
+      name: 'Demo Student',
+    })
+    .onConflictDoNothing()
+}
 
 const [c] = await db.select({ n: count() }).from(countries)
 const [r] = await db.select({ n: count() }).from(obesityRates)
