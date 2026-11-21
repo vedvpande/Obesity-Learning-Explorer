@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
-import { SOURCE } from '../mocks/countries.ts'
+import { OWID_SOURCE } from '../db/seedData.ts'
 import LearnPage, { SUPPORT_URL } from './LearnPage.tsx'
 
 function renderPage() {
@@ -48,7 +48,7 @@ test('lists several causes using person-first language', () => {
 test('the citation example has country, year, rate and source', () => {
   renderPage()
   expect(screen.getByTestId('citation-example')).toHaveTextContent(
-    `In 2022, 26.9% of adults (18+) in United Kingdom had obesity. Source: ${SOURCE}.`,
+    `In 2022, 26.99364% of adults (18+) in United Kingdom had obesity. Source: ${OWID_SOURCE}.`,
   )
 })
 

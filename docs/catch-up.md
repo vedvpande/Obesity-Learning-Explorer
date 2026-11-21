@@ -37,8 +37,8 @@ To continue in a new conversation, paste: "Read docs/catch-up.md and continue."
 - [x] 7. CLAUDE.md (product line, commands and Git rule updated on branch feature/catch-up-setup; commit at end of step 8)
 - [x] 8. .claude/settings.json, docs/brief.md, PR template, .gitignore (all present; added .DS_Store to .gitignore and removed the committed .DS_Store)
 - [x] 9. Setup commit (on feature/catch-up-setup with a PR into dev, because main is protected now)
-- [ ] 10. dev and test branches
-- [ ] 11. Landing page (feature/landing-page → PR into dev)
+- [x] 10. dev and test branches (exist on GitHub, protected by the ruleset; working on dev)
+- [x] 11. Landing page (feature/landing-page → PR #14 into dev; "Get started" goes to /explore; emergency line added to the shared footer on feature/footer-emergency-line)
 - [ ] 12. One GitHub Issue per main feature
 
 ### Week 3: Specs, AI team and screens

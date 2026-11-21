@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchExploreData, type ExploreData } from '../mocks/countries.ts'
+import { fetchExploreData } from '../api/client.ts'
+import type { ExploreData } from '../api/types.ts'
 
 type State =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'ready'; data: ExploreData }
 
-// Swap fetchExploreData for GET /api/countries + /api/rates once #11 lands.
+// Loads every country with its 1990 and 2022 rates from the API.
 export function useExploreData() {
   const [state, setState] = useState<State>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)

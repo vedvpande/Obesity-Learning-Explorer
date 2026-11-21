@@ -1,22 +1,6 @@
-// Mock data shaped like the planned #11 tables (countries, obesity_rates).
-// Values are illustrative only; they will be replaced by the real data file.
-
-export type Country = {
-  code: string
-  name: string
-}
-
-export type RateRow = {
-  countryCode: string
-  year: number
-  ratePercent: number
-  source: string
-}
-
-export type ExploreData = {
-  countries: Country[]
-  rates: RateRow[]
-}
+// TEST DATA ONLY. The app now loads real data from /api (see src/api/client.ts).
+// Tests use these small, fixed values so they never need a database.
+import type { Country, ExploreData, RateRow } from '../api/types.ts'
 
 export const SOURCE =
   'Obesity Learning Explorer mock dataset (illustrative values modelled on public WHO figures)'
