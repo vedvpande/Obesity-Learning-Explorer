@@ -12,8 +12,10 @@ import { OWID_SOURCE, parseRatesCsv } from '../src/db/seedData.ts'
 
 const { DATABASE_URL, DEMO_USER_ID } = process.env
 if (!DATABASE_URL) throw new Error('DATABASE_URL is not set (see .env.example)')
-// The demo user is only for development and staging, never production.
-const seedDemoUser = process.env.APP_ENV !== 'production'
+// The demo user is for development and staging; on production only while
+// ALLOW_DEMO_USER=true (until real sign-in ships).
+const seedDemoUser =
+  process.env.APP_ENV !== 'production' || process.env.ALLOW_DEMO_USER === 'true'
 if (seedDemoUser && !z.uuid().safeParse(DEMO_USER_ID).success) {
   throw new Error('DEMO_USER_ID must be set to a uuid (see .env.example)')
 }
