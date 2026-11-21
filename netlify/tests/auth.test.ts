@@ -21,10 +21,20 @@ test('acts as the demo user locally (no APP_ENV) and on staging', () => {
   expect(currentUserId()).toBe(DEMO)
 })
 
-test('NEVER acts as the demo user in production, even if it is set', () => {
+test('in production, refuses the demo user unless ALLOW_DEMO_USER is "true"', () => {
   vi.stubEnv('APP_ENV', 'production')
   vi.stubEnv('DEMO_USER_ID', DEMO)
-  expect(currentUserId()).toBeNull()
+  for (const value of [undefined, '', 'false', 'TRUE', '1', 'yes']) {
+    vi.stubEnv('ALLOW_DEMO_USER', value)
+    expect(currentUserId()).toBeNull()
+  }
+})
+
+test('in production, acts as the demo user only while ALLOW_DEMO_USER=true', () => {
+  vi.stubEnv('APP_ENV', 'production')
+  vi.stubEnv('DEMO_USER_ID', DEMO)
+  vi.stubEnv('ALLOW_DEMO_USER', 'true')
+  expect(currentUserId()).toBe(DEMO)
 })
 
 test.each([undefined, '', 'demo', '-'.repeat(36), `${DEMO}x`])(
