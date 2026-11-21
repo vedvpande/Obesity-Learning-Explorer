@@ -1,4 +1,4 @@
-import type { Country, RateRow } from '../mocks/countries.ts'
+import type { Country, RateRow } from '../api/types.ts'
 
 export function latestRate(rates: RateRow[], countryCode: string) {
   return rates

@@ -1,4 +1,4 @@
-import type { Country, RateRow } from '../mocks/countries.ts'
+import type { Country, RateRow } from '../api/types.ts'
 
 export const START_YEAR = 1990
 export const END_YEAR = 2022
