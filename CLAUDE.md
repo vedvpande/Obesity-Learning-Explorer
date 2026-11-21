@@ -2,7 +2,7 @@
 
 ## Product
 
-Obesity Learning Explorer: For Students trying to understand obesity, strictly for educational purposes. Offers one simple place to look up, compare and understand obesity trends.
+Obesity Learning Explorer: helps students look up, compare and cite adult obesity trends by country for school work, in one simple, trustworthy place.
 
 This is a learning project. It must NEVER store real patient data.
 It does not diagnose or give medical advice; it shows a disclaimer.
@@ -22,12 +22,12 @@ It does not diagnose or give medical advice; it shows a disclaimer.
 
 ## Commands
 
-- npm run dev start locally (netlify dev)
-- npm run lint ESLint
-- npm run typecheck tsc --noEmit
-- npm test Vitest
-- npm run build production build
-- npm run db:generate / npm run db:migrate Drizzle migrations
+- npm run dev        start locally with Vite (http://localhost:5173; /api/* runs only on Netlify)
+- npm run lint       ESLint
+- npm run typecheck  tsc --noEmit
+- npm test           Vitest
+- npm run build      production build
+- npm run db:migrate placeholder for now (prints "no migrations yet"); Drizzle comes in Week 5
 
 ## Rules (always follow)
 
@@ -42,5 +42,7 @@ It does not diagnose or give medical advice; it shows a disclaimer.
 6. Do not add a new npm package without telling me its name, why it is
    needed, and confirming it is the real, widely used package.
 7. Accessible UI: labels on inputs, keyboard navigation, good contrast.
-8. Git: never push to main, test or dev directly. Work on a
-   feature/<name> branch and open a pull request into dev.
+8. Git: main = production, test = staging, dev = integration. Never commit
+   or push directly to main, test or dev: work on feature/<short-name>, then
+   a pull request into dev. Run git branch --show-current before every commit.
+   Never git push --force or git reset --hard.
