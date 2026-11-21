@@ -151,3 +151,6 @@ vite.config.ts.timestamp-*
 # Netlify CLI local folder (site link, cache) - never commit
 .netlify
 .neon
+
+# macOS Finder files
+.DS_Store
