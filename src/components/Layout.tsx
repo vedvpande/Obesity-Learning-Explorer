@@ -77,6 +77,9 @@ function Layout() {
         <p>
           For learning only. This site does not diagnose or give medical advice.
         </p>
+        <p className="mt-1">
+          In an emergency, call your local emergency number.
+        </p>
       </footer>
     </div>
   )
