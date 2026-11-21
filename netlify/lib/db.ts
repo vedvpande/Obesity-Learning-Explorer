@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { drizzle } from 'drizzle-orm/neon-http'
+import { ConfigError } from './config.ts'
 
 let db: ReturnType<typeof drizzle> | undefined
 
@@ -8,7 +9,7 @@ let db: ReturnType<typeof drizzle> | undefined
 export function getDb() {
   if (!db) {
     const url = process.env.DATABASE_URL
-    if (!url) throw new Error('DATABASE_URL is not set')
+    if (!url) throw new ConfigError('DATABASE_URL')
     db = drizzle(neon(url))
   }
   return db

@@ -1,5 +1,6 @@
-// Small helpers so every function answers with JSON and the right status.
+import { ConfigError } from './config.ts'
 
+// Small helpers so every function answers with JSON and the right status.
 export function json(data: unknown, status = 200): Response {
   return Response.json(data, { status })
 }
@@ -30,10 +31,34 @@ export async function readJson(
   }
 }
 
-// Logs only the error's type, never its message, so a connection string
-// or other secret can never end up in the logs.
+// A Postgres SQLSTATE code (e.g. 42703 = unknown column) is five letters or
+// digits and never contains data, so it is safe to log. Drizzle sometimes
+// wraps the database error, so look one level down in `cause` too.
+function postgresCode(err: unknown): string | null {
+  for (const e of [err, err instanceof Error ? err.cause : undefined]) {
+    if (e && typeof e === 'object' && 'code' in e) {
+      const code = (e as { code: unknown }).code
+      if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) return code
+    }
+  }
+  return null
+}
+
+// Logs only safe facts, never an error's message, so a connection string
+// or other secret can never end up in the logs:
+// - a missing setting  → its NAME (e.g. "SESSION_SECRET must be set ...")
+// - a database error   → the Postgres error code
+// - anything else      → the error's type
+// The user always gets the same generic message.
 export function serverError(where: string, err: unknown): Response {
-  const kind = err instanceof Error ? err.name : typeof err
-  console.error(`${where} failed (${kind})`)
+  if (err instanceof ConfigError) {
+    console.error(`${where} failed: ${err.message}`)
+  } else {
+    const kind = err instanceof Error ? err.name : typeof err
+    const code = postgresCode(err)
+    console.error(
+      `${where} failed (${kind}${code ? `, Postgres code ${code}` : ''})`,
+    )
+  }
   return error(500, 'Something went wrong. Please try again.')
 }
