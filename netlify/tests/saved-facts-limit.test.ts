@@ -3,8 +3,15 @@ import savedFacts, { MAX_SAVED_FACTS } from '../functions/saved-facts.ts'
 import { getDb } from '../lib/db.ts'
 
 vi.mock('../lib/db.ts', () => ({ getDb: vi.fn() }))
-
-const DEMO = '3f2504e0-4f89-41d3-9a0c-0305e82c3301'
+vi.mock('../lib/requireUser.ts', () => ({
+  requireUser: vi.fn((req: Request) =>
+    Promise.resolve(
+      req.headers.get('cookie')
+        ? { userId: '3f2504e0-4f89-41d3-9a0c-0305e82c3301' }
+        : Response.json({ error: 'Sign in to continue.' }, { status: 401 }),
+    ),
+  ),
+}))
 
 // A tiny stand-in for Drizzle: the count query answers `existing`, and
 // insert must never be reached when the user is at the limit.
@@ -19,16 +26,21 @@ function fakeDb(existing: number) {
   return insert
 }
 
-const post = () =>
+const post = ({ signedIn = true } = {}) =>
   savedFacts(
     new Request('http://localhost/api/saved-facts', {
       method: 'POST',
+      headers: {
+        origin: 'http://localhost',
+        'content-type': 'application/json',
+        ...(signedIn ? { cookie: 'session=test' } : {}),
+      },
       body: JSON.stringify({ countryCode: 'GBR', year: 2022 }),
     }),
   )
 
 beforeEach(() => {
-  vi.stubEnv('DEMO_USER_ID', DEMO)
+  vi.stubEnv('APP_URL', 'http://localhost')
 })
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -49,9 +61,8 @@ test('refuses with 409 when the user already has the maximum', async () => {
   expect(insert).not.toHaveBeenCalled()
 })
 
-test('a signed-out request in production never reaches the database', async () => {
-  vi.stubEnv('APP_ENV', 'production')
-  const res = await post()
+test('a signed-out request never reaches the database', async () => {
+  const res = await post({ signedIn: false })
   expect(res.status).toBe(401)
   expect(getDb).not.toHaveBeenCalled()
 })
