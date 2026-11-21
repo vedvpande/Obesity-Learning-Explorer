@@ -1,6 +1,6 @@
 import { and, count, desc, eq } from 'drizzle-orm'
 import { countries, obesityRates, savedFacts } from '../../src/db/schema.ts'
-import { currentUserId } from '../lib/auth.ts'
+import { checkMutation } from '../lib/csrf.ts'
 import { getDb } from '../lib/db.ts'
 import {
   error,
@@ -9,6 +9,7 @@ import {
   readJson,
   serverError,
 } from '../lib/http.ts'
+import { requireUser } from '../lib/requireUser.ts'
 import {
   createSavedFact,
   firstIssue,
@@ -37,8 +38,18 @@ const factColumns = {
 // Every query filters on the signed-in user's id, so another user's fact
 // is never returned or changed: it simply answers 404.
 export default async function handler(req: Request) {
-  const userId = currentUserId()
-  if (!userId) return error(401, 'Sign in to use My Report.')
+  // Changes must come from our own site, as JSON (CSRF protection).
+  const blocked = checkMutation(req)
+  if (blocked) return blocked
+
+  let userId: string
+  try {
+    const auth = await requireUser(req)
+    if (auth instanceof Response) return auth
+    userId = auth.userId
+  } catch (err) {
+    return serverError('saved-facts sign-in check', err)
+  }
 
   // The id travels as ?id=… (not a path segment): query strings are never
   // rewritten, while netlify dev appends ".html" to unknown paths.

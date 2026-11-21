@@ -1,9 +1,26 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
+import { fetchMe, signOut } from '../api/client.ts'
 import App from '../App.tsx'
 
-afterEach(() => {
-  localStorage.clear()
+// The app asks GET /api/auth/me who is signed in; tests answer for it.
+vi.mock('../api/client.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/client.ts')>()
+  const testData = await import('../mocks/countries.ts')
+  return {
+    ...actual,
+    fetchExploreData: vi.fn(testData.fetchExploreData),
+    fetchMe: vi.fn(),
+    signOut: vi.fn(),
+    listSavedFacts: vi.fn(() => Promise.resolve([])),
+  }
+})
+
+const ANN = { name: 'Ann', email: 'ann@example.com' }
+
+beforeEach(() => {
+  vi.mocked(fetchMe).mockReset().mockResolvedValue(ANN)
+  vi.mocked(signOut).mockReset().mockResolvedValue(undefined)
 })
 
 const DISCLAIMER =
@@ -32,11 +49,11 @@ const publicPages = pages.filter(([url]) => url !== '/my-report')
 
 test.each(pages)(
   '%s renders its heading inside the shared layout',
-  (url, heading) => {
+  async (url, heading) => {
     renderAt(url)
     const main = screen.getByRole('main')
     expect(
-      within(main).getByRole('heading', { level: 1, name: heading }),
+      await within(main).findByRole('heading', { level: 1, name: heading }),
     ).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
     expect(
@@ -85,8 +102,12 @@ test('"Skip to main content" is the first thing Tab reaches', () => {
 
 test.each(publicPages)(
   '%s works signed out: no sign-in gate or redirect',
-  (url, heading) => {
+  async (url, heading) => {
+    vi.mocked(fetchMe).mockResolvedValue(null)
     renderAt(url)
+    expect(
+      await screen.findByRole('link', { name: 'Sign in' }),
+    ).toBeInTheDocument()
     const main = screen.getByRole('main')
     expect(
       within(main).getByRole('heading', { level: 1, name: heading }),
@@ -98,13 +119,30 @@ test.each(publicPages)(
   },
 )
 
-test('header offers an optional sign-in that toggles to Sign out', () => {
+test('signed out: the header links to the login page and back to this page', async () => {
+  vi.mocked(fetchMe).mockResolvedValue(null)
+  renderAt('/explore?country=GBR')
+  expect(await screen.findByRole('link', { name: 'Sign in' })).toHaveAttribute(
+    'href',
+    '/login?next=%2Fexplore%3Fcountry%3DGBR',
+  )
+  expect(screen.queryByText(/demo/i)).not.toBeInTheDocument()
+})
+
+test('signed in: the header shows my name and Sign out works', async () => {
   renderAt('/')
-  const button = screen.getByRole('button', { name: 'Sign in (demo)' })
-  fireEvent.click(button)
-  expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  expect(await screen.findByText('Ann')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
   expect(
-    screen.getByRole('button', { name: 'Sign in (demo)' }),
+    await screen.findByRole('link', { name: 'Sign in' }),
+  ).toBeInTheDocument()
+  expect(signOut).toHaveBeenCalledTimes(1)
+})
+
+test('signed out: /my-report redirects to the login page', async () => {
+  vi.mocked(fetchMe).mockResolvedValue(null)
+  renderAt('/my-report')
+  expect(
+    await screen.findByRole('heading', { level: 1, name: 'Sign in' }),
   ).toBeInTheDocument()
 })

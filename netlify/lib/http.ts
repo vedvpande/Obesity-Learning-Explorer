@@ -15,10 +15,16 @@ export function methodNotAllowed(allowed: string[]): Response {
   })
 }
 
-// Reads a JSON body; returns undefined if the body is missing or not JSON.
-export async function readJson(req: Request): Promise<unknown> {
+// Reads a JSON body; returns undefined if it is missing, not JSON, or larger
+// than maxBytes (even if the client didn't send a Content-Length).
+export async function readJson(
+  req: Request,
+  maxBytes = 4096,
+): Promise<unknown> {
   try {
-    return await req.json()
+    const text = await req.text()
+    if (new TextEncoder().encode(text).length > maxBytes) return undefined
+    return JSON.parse(text)
   } catch {
     return undefined
   }

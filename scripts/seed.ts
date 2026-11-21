@@ -1,24 +1,16 @@
 // npm run db:seed
-// Loads countries and obesity rates from data/obesity_countries.csv and
-// creates the fake Demo Student user (id = DEMO_USER_ID). Safe to run again:
-// existing rows are updated, never duplicated. Never prints DATABASE_URL.
+// Loads countries and obesity rates from data/obesity_countries.csv.
+// Safe to run again: existing rows are updated, never duplicated.
+// Users are created only by signing in with Google. Never prints DATABASE_URL.
 import { readFileSync } from 'node:fs'
-import { z } from 'zod'
 import { neon } from '@neondatabase/serverless'
 import { count, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
 import { countries, obesityRates, savedFacts, users } from '../src/db/schema.ts'
 import { OWID_SOURCE, parseRatesCsv } from '../src/db/seedData.ts'
 
-const { DATABASE_URL, DEMO_USER_ID } = process.env
+const { DATABASE_URL } = process.env
 if (!DATABASE_URL) throw new Error('DATABASE_URL is not set (see .env.example)')
-// The demo user is for development and staging; on production only while
-// ALLOW_DEMO_USER=true (until real sign-in ships).
-const seedDemoUser =
-  process.env.APP_ENV !== 'production' || process.env.ALLOW_DEMO_USER === 'true'
-if (seedDemoUser && !z.uuid().safeParse(DEMO_USER_ID).success) {
-  throw new Error('DEMO_USER_ID must be set to a uuid (see .env.example)')
-}
 
 const db = drizzle(neon(DATABASE_URL))
 const parsed = parseRatesCsv(readFileSync('data/obesity_countries.csv', 'utf8'))
@@ -52,18 +44,6 @@ for (const batch of chunks(parsed.rates, 500)) {
         updatedAt: sql`now()`,
       },
     })
-}
-
-if (seedDemoUser && DEMO_USER_ID) {
-  await db
-    .insert(users)
-    .values({
-      id: DEMO_USER_ID,
-      googleSub: 'demo-student',
-      email: 'demo@example.com',
-      name: 'Demo Student',
-    })
-    .onConflictDoNothing()
 }
 
 const [c] = await db.select({ n: count() }).from(countries)

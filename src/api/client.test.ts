@@ -3,7 +3,10 @@ import {
   createSavedFact,
   deleteSavedFact,
   fetchExploreData,
+  fetchMe,
   listSavedFacts,
+  signInWithGoogle,
+  signOut,
   updateSavedFactNote,
 } from './client.ts'
 
@@ -96,4 +99,34 @@ test('an error without JSON still gives a friendly message', async () => {
     status: 500,
     message: 'Something went wrong. Please try again.',
   })
+})
+
+test('fetchMe returns the user, or null when signed out or offline', async () => {
+  respond(200, { name: 'Ann', email: 'a@b.c' })
+  expect(await fetchMe()).toEqual({ name: 'Ann', email: 'a@b.c' })
+  respond(401, { error: 'Sign in to continue.' })
+  expect(await fetchMe()).toBeNull()
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => Promise.reject(new Error('offline'))),
+  )
+  expect(await fetchMe()).toBeNull()
+})
+
+test('signInWithGoogle posts both tokens; signOut posts to logout', async () => {
+  const fetchMock = respond(200, { name: 'Ann', email: 'a@b.c' })
+  await signInWithGoogle('cred', 'ts')
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/auth/google',
+    expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ credential: 'cred', turnstileToken: 'ts' }),
+    }),
+  )
+  const logoutMock = respond(204)
+  await signOut()
+  expect(logoutMock).toHaveBeenCalledWith(
+    '/api/auth/logout',
+    expect.objectContaining({ method: 'POST' }),
+  )
 })

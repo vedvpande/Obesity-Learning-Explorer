@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { ApiError, createSavedFact } from '../api/client.ts'
-import AuthProvider from '../auth/AuthProvider.tsx'
+import { authValue } from '../test/authState.ts'
+import WithAuth from '../test/WithAuth.tsx'
 import SaveFactForm from './SaveFactForm.tsx'
 
 vi.mock('../api/client.ts', async (importOriginal) => {
@@ -18,18 +19,16 @@ const row = {
 }
 
 function renderForm({ signedIn }: { signedIn: boolean }) {
-  if (signedIn) localStorage.setItem('demoSignedIn', 'yes')
   render(
-    <MemoryRouter>
-      <AuthProvider>
+    <MemoryRouter initialEntries={['/explore?country=GBR']}>
+      <WithAuth value={authValue(signedIn ? 'signedIn' : 'signedOut')}>
         <SaveFactForm country={country} row={row} />
-      </AuthProvider>
+      </WithAuth>
     </MemoryRouter>,
   )
 }
 
 beforeEach(() => {
-  localStorage.clear()
   vi.mocked(createSavedFact).mockReset()
   vi.mocked(createSavedFact).mockResolvedValue({
     id: 'new-id',
@@ -43,7 +42,7 @@ beforeEach(() => {
   })
 })
 
-test('signed out: invites sign-in instead of showing the form', () => {
+test('signed out: links to the login page and comes back to this fact', () => {
   renderForm({ signedIn: false })
   expect(
     screen.getByText('Sign in to save this fact to My Report.'),
@@ -51,11 +50,10 @@ test('signed out: invites sign-in instead of showing the form', () => {
   expect(
     screen.queryByRole('button', { name: 'Save to My Report' }),
   ).not.toBeInTheDocument()
-
-  fireEvent.click(screen.getByRole('button', { name: 'Sign in (demo)' }))
-  expect(
-    screen.getByRole('button', { name: 'Save to My Report' }),
-  ).toBeInTheDocument()
+  expect(screen.getByRole('link', { name: 'Sign in to save' })).toHaveAttribute(
+    'href',
+    '/login?next=%2Fexplore%3Fcountry%3DGBR',
+  )
 })
 
 test('signed in: labelled note with hint and character counter', () => {

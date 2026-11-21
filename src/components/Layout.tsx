@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../auth/auth.ts'
 import ThemeToggle from './ThemeToggle.tsx'
 
@@ -15,7 +15,12 @@ const navItems = [
 ]
 
 function Layout() {
-  const { user, signIn, signOut } = useAuth()
+  const { status, user, signOut } = useAuth()
+  const location = useLocation()
+  const loginHref =
+    location.pathname === '/login'
+      ? '/login'
+      : `/login?next=${encodeURIComponent(location.pathname + location.search)}`
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100">
@@ -57,13 +62,28 @@ function Layout() {
             </ul>
           </nav>
           <div className="ml-auto flex items-center gap-2 sm:ml-0">
-            <button
-              type="button"
-              onClick={user ? signOut : signIn}
-              className={`rounded-lg border border-slate-400 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:border-slate-500 dark:hover:bg-slate-800 ${focusRing}`}
-            >
-              {user ? 'Sign out' : 'Sign in (demo)'}
-            </button>
+            {status === 'signedIn' && user && (
+              <>
+                <span className="text-sm text-slate-700 dark:text-slate-300">
+                  {user.name ?? user.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void signOut()}
+                  className={`rounded-lg border border-slate-400 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:border-slate-500 dark:hover:bg-slate-800 ${focusRing}`}
+                >
+                  Sign out
+                </button>
+              </>
+            )}
+            {status === 'signedOut' && (
+              <Link
+                to={loginHref}
+                className={`rounded-lg border border-slate-400 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:border-slate-500 dark:hover:bg-slate-800 ${focusRing}`}
+              >
+                Sign in
+              </Link>
+            )}
             <ThemeToggle />
           </div>
         </div>
