@@ -8,6 +8,7 @@ afterEach(() => {
 
 const DISCLAIMER =
   'For learning only. This site does not diagnose or give medical advice.'
+const EMERGENCY = 'In an emergency, call your local emergency number.'
 
 function renderAt(url: string) {
   return render(
@@ -43,6 +44,13 @@ test.each(pages)(
     ).toBeInTheDocument()
   },
 )
+
+test.each(pages)('%s footer tells people what to do in an emergency', (url) => {
+  renderAt(url)
+  expect(
+    within(screen.getByRole('contentinfo')).getByText(EMERGENCY),
+  ).toBeInTheDocument()
+})
 
 test.each(pages)(
   '%s marks only its own nav link as the current page',
