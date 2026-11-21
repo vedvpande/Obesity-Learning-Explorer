@@ -49,9 +49,7 @@ jobs:
       TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-      DEMO_USER_ID: ${{ secrets.DEMO_USER_ID }}
       APP_ENV: ${{ vars.APP_ENV }}
-      ALLOW_DEMO_USER: ${{ vars.ALLOW_DEMO_USER }}
       APP_URL: ${{ vars.APP_URL }}
       GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
     steps:
@@ -82,12 +80,10 @@ jobs:
             --dir=dist --functions=netlify/functions \
             --message="$GITHUB_SHA" \
             --env="APP_ENV=$APP_ENV" \
-            --env="ALLOW_DEMO_USER=$ALLOW_DEMO_USER" \
             --env="APP_URL=$APP_URL" \
             --env="GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" \
             --secret-env="DATABASE_URL=$DATABASE_URL" \
             --secret-env="SESSION_SECRET=$SESSION_SECRET" \
             --secret-env="TURNSTILE_SECRET_KEY=$TURNSTILE_SECRET_KEY" \
             --secret-env="STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY" \
-            --secret-env="STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" \
-            --secret-env="DEMO_USER_ID=$DEMO_USER_ID"
+            --secret-env="STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET"

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import {
+  ApiError,
   deleteSavedFact,
   listSavedFacts,
   updateSavedFactNote,
@@ -16,7 +17,8 @@ const linkClass = `font-semibold text-teal-700 underline hover:text-teal-800 dar
 const smallButton = `mt-3 rounded-lg border border-slate-400 px-3 py-1.5 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 ${focusRing}`
 
 function MyReportPage() {
-  const { user, signIn } = useAuth()
+  // RequireAuth makes sure we're signed in before this page shows.
+  const { user, refresh } = useAuth()
   const [facts, setFacts] = useState<SavedFact[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
@@ -31,14 +33,18 @@ function MyReportPage() {
       (list) => {
         if (!cancelled) setFacts(list)
       },
-      () => {
-        if (!cancelled) setLoadFailed(true)
+      (err: unknown) => {
+        if (cancelled) return
+        // Session ended (e.g. after 7 days): update the sign-in state, and
+        // RequireAuth sends the user to the login page.
+        if (err instanceof ApiError && err.status === 401) void refresh()
+        else setLoadFailed(true)
       },
     )
     return () => {
       cancelled = true
     }
-  }, [user, attempt])
+  }, [user, attempt, refresh])
 
   function retry() {
     setLoadFailed(false)
@@ -94,19 +100,6 @@ function MyReportPage() {
       <p className="mt-2 text-slate-700 dark:text-slate-300">
         Facts you have saved, with their sources, ready to cite.
       </p>
-
-      {!user && (
-        <div className="mt-8">
-          <p>Sign in to see the facts you have saved.</p>
-          <button
-            type="button"
-            onClick={signIn}
-            className={`mt-3 rounded-lg border border-slate-400 px-4 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 ${focusRing}`}
-          >
-            Sign in (demo)
-          </button>
-        </div>
-      )}
 
       {user && loadFailed && (
         <div role="alert" className="mt-8">

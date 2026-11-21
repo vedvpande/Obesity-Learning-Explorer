@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import {
   ApiError,
@@ -7,7 +13,8 @@ import {
   updateSavedFactNote,
 } from '../api/client.ts'
 import type { SavedFact } from '../api/types.ts'
-import AuthProvider from '../auth/AuthProvider.tsx'
+import { authValue } from '../test/authState.ts'
+import WithAuth from '../test/WithAuth.tsx'
 import MyReportPage from './MyReportPage.tsx'
 
 vi.mock('../api/client.ts', async (importOriginal) => {
@@ -42,15 +49,16 @@ const facts = [
   fact('f-1', 'United Kingdom', 26.9, 'Use in intro'),
 ]
 
-function renderPage({ signedIn = true } = {}) {
-  if (signedIn) localStorage.setItem('demoSignedIn', 'yes')
+// RequireAuth (tested separately) only shows this page when signed in.
+function renderPage(auth = authValue('signedIn')) {
   render(
     <MemoryRouter>
-      <AuthProvider>
+      <WithAuth value={auth}>
         <MyReportPage />
-      </AuthProvider>
+      </WithAuth>
     </MemoryRouter>,
   )
+  return auth
 }
 
 function mockClipboard(writeText: (text: string) => Promise<void>) {
@@ -63,7 +71,6 @@ function mockClipboard(writeText: (text: string) => Promise<void>) {
 }
 
 beforeEach(() => {
-  localStorage.clear()
   vi.mocked(listSavedFacts).mockReset().mockResolvedValue(facts)
   vi.mocked(deleteSavedFact).mockReset().mockResolvedValue(undefined)
   vi.mocked(updateSavedFactNote)
@@ -71,12 +78,13 @@ beforeEach(() => {
     .mockImplementation((id, note) => Promise.resolve({ id, note }))
 })
 
-test('signed out: asks to sign in and does not call the API', () => {
-  renderPage({ signedIn: false })
-  expect(
-    screen.getByText('Sign in to see the facts you have saved.'),
-  ).toBeInTheDocument()
-  expect(listSavedFacts).not.toHaveBeenCalled()
+test('if the session has ended (401), it refreshes the sign-in state', async () => {
+  vi.mocked(listSavedFacts).mockRejectedValueOnce(
+    new ApiError(401, 'Sign in to continue.'),
+  )
+  const auth = renderPage()
+  await waitFor(() => expect(auth.refresh).toHaveBeenCalled())
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 })
 
 test('signed in with nothing saved: shows an empty message', async () => {
