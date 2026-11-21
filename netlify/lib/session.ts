@@ -1,4 +1,5 @@
 import { jwtVerify, SignJWT } from 'jose'
+import { ConfigError } from './config.ts'
 
 // The session is a signed token (HS256 with SESSION_SECRET) that holds only
 // the user's id. Nobody can read a secret from it or change it without the
@@ -12,7 +13,10 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days, in seconds
 function secretKey(): Uint8Array {
   const secret = process.env.SESSION_SECRET
   if (!secret || secret.length < 32) {
-    throw new Error('SESSION_SECRET must be set (at least 32 characters)')
+    throw new ConfigError(
+      'SESSION_SECRET',
+      'must be set (at least 32 characters)',
+    )
   }
   return new TextEncoder().encode(secret)
 }
