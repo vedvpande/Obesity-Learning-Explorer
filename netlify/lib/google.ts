@@ -1,4 +1,5 @@
 import { OAuth2Client } from 'google-auth-library'
+import { ConfigError } from './config.ts'
 
 export type GoogleProfile = { sub: string; email: string; name: string | null }
 
@@ -11,7 +12,7 @@ export async function verifyGoogleIdToken(
   idToken: string,
 ): Promise<GoogleProfile | null> {
   const audience = process.env.GOOGLE_CLIENT_ID
-  if (!audience) throw new Error('GOOGLE_CLIENT_ID is not set')
+  if (!audience) throw new ConfigError('GOOGLE_CLIENT_ID')
   client ??= new OAuth2Client()
 
   try {
