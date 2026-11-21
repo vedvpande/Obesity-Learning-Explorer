@@ -49,6 +49,7 @@ jobs:
       TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      DEMO_USER_ID: ${{ secrets.DEMO_USER_ID }}
       APP_ENV: ${{ vars.APP_ENV }}
       APP_URL: ${{ vars.APP_URL }}
       GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
@@ -86,4 +87,5 @@ jobs:
             --secret-env="SESSION_SECRET=$SESSION_SECRET" \
             --secret-env="TURNSTILE_SECRET_KEY=$TURNSTILE_SECRET_KEY" \
             --secret-env="STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY" \
-            --secret-env="STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET"
+            --secret-env="STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET" \
+            --secret-env="DEMO_USER_ID=$DEMO_USER_ID"

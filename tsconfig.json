@@ -22,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "netlify", "vite.config.ts"]
+  "include": ["src", "netlify", "scripts", "vite.config.ts", "drizzle.config.ts"]
 }

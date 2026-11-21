@@ -6,12 +6,15 @@ import {
   within,
 } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
+import * as client from '../api/client.ts'
 import * as mocks from '../mocks/countries.ts'
 import ExplorePage from './ExplorePage.tsx'
 
-vi.mock('../mocks/countries.ts', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../mocks/countries.ts')>()
-  return { ...actual, fetchExploreData: vi.fn(actual.fetchExploreData) }
+// The page loads data through the API client; tests give it fixed test data.
+vi.mock('../api/client.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/client.ts')>()
+  const testData = await import('../mocks/countries.ts')
+  return { ...actual, fetchExploreData: vi.fn(testData.fetchExploreData) }
 })
 
 const { SOURCE } = mocks
@@ -42,7 +45,7 @@ function mockClipboard(writeText: (text: string) => Promise<void>) {
 }
 
 afterEach(() => {
-  vi.mocked(mocks.fetchExploreData).mockClear()
+  vi.mocked(client.fetchExploreData).mockClear()
 })
 
 test('shows a loading state, then a labelled Country dropdown in alphabetical order', async () => {
@@ -123,7 +126,7 @@ test('shows a clear message when copying fails', async () => {
 })
 
 test('shows an error state and recovers with Try again', async () => {
-  vi.mocked(mocks.fetchExploreData).mockRejectedValueOnce(new Error('down'))
+  vi.mocked(client.fetchExploreData).mockRejectedValueOnce(new Error('down'))
   renderAt()
 
   expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -175,7 +178,7 @@ describe('edge cases', () => {
   })
 
   test('an empty countries list shows only the placeholder', async () => {
-    vi.mocked(mocks.fetchExploreData).mockResolvedValueOnce({
+    vi.mocked(client.fetchExploreData).mockResolvedValueOnce({
       countries: [],
       rates: [],
     })
@@ -189,7 +192,7 @@ describe('edge cases', () => {
   })
 
   test('a country with no rate rows shows no fact and no copy button', async () => {
-    vi.mocked(mocks.fetchExploreData).mockResolvedValueOnce({
+    vi.mocked(client.fetchExploreData).mockResolvedValueOnce({
       countries: [...mocks.countries, { code: 'ZZZ', name: 'Nodataland' }],
       rates: mocks.rates,
     })
@@ -204,7 +207,7 @@ describe('edge cases', () => {
   test('a very long country name and source are shown and copied in full', async () => {
     const name = 'The Very Long Name Republic of '.repeat(20) + 'Longland'
     const source = 'An extremely long citation. '.repeat(100).trim()
-    vi.mocked(mocks.fetchExploreData).mockResolvedValueOnce({
+    vi.mocked(client.fetchExploreData).mockResolvedValueOnce({
       countries: [{ code: 'LNG', name }],
       rates: [{ countryCode: 'LNG', year: 2022, ratePercent: 12.3, source }],
     })
@@ -237,14 +240,16 @@ describe('edge cases', () => {
   })
 
   test('Try again still works after a second failure', async () => {
-    vi.mocked(mocks.fetchExploreData)
+    vi.mocked(client.fetchExploreData)
       .mockRejectedValueOnce(new Error('down'))
       .mockRejectedValueOnce(new Error('still down'))
     renderAt('/explore?country=GBR')
 
     expect(await screen.findByRole('alert')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
-    await waitFor(() => expect(mocks.fetchExploreData).toHaveBeenCalledTimes(2))
+    await waitFor(() =>
+      expect(client.fetchExploreData).toHaveBeenCalledTimes(2),
+    )
     expect(await screen.findByRole('alert')).toHaveTextContent(
       "Couldn't load data. Try again.",
     )
@@ -252,6 +257,6 @@ describe('edge cases', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
     expect(await screen.findByLabelText('Country')).toHaveValue('GBR')
     expect(screen.getByTestId('fact')).toHaveTextContent('United Kingdom')
-    expect(mocks.fetchExploreData).toHaveBeenCalledTimes(3)
+    expect(client.fetchExploreData).toHaveBeenCalledTimes(3)
   })
 })

@@ -1,4 +1,4 @@
-import type { Country, RateRow } from '../mocks/countries.ts'
+import type { Country, RateRow } from '../api/types.ts'
 import { buildCitationList, buildFactSentence, latestRate } from './facts.ts'
 
 const uk: Country = { code: 'GBR', name: 'United Kingdom' }

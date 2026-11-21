@@ -1,11 +1,14 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
+import * as client from '../api/client.ts'
 import * as mocks from '../mocks/countries.ts'
 import RankingsPage from './RankingsPage.tsx'
 
-vi.mock('../mocks/countries.ts', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../mocks/countries.ts')>()
-  return { ...actual, fetchExploreData: vi.fn(actual.fetchExploreData) }
+// The page loads data through the API client; tests give it fixed test data.
+vi.mock('../api/client.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../api/client.ts')>()
+  const testData = await import('../mocks/countries.ts')
+  return { ...actual, fetchExploreData: vi.fn(testData.fetchExploreData) }
 })
 
 function renderPage() {
@@ -37,7 +40,7 @@ function header(name: string) {
 }
 
 afterEach(() => {
-  vi.mocked(mocks.fetchExploreData).mockClear()
+  vi.mocked(client.fetchExploreData).mockClear()
 })
 
 test('shows the four columns and a caption with adults, years and source', async () => {
@@ -157,7 +160,7 @@ test('the table scrolls inside its own keyboard-reachable box', async () => {
 })
 
 test('shows an error state and recovers with Try again', async () => {
-  vi.mocked(mocks.fetchExploreData).mockRejectedValueOnce(new Error('down'))
+  vi.mocked(client.fetchExploreData).mockRejectedValueOnce(new Error('down'))
   renderPage()
   expect(await screen.findByRole('alert')).toHaveTextContent(
     "Couldn't load data. Try again.",
