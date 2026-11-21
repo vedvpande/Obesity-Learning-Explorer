@@ -13,6 +13,7 @@ vi.mock('google-auth-library', () => ({
 afterEach(() => {
   vi.unstubAllEnvs()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
   verifyIdToken.mockReset()
 })
 
@@ -59,6 +60,51 @@ describe('verifyTurnstile', () => {
       vi.fn(() => Promise.reject(new Error('offline'))),
     )
     expect(await verifyTurnstile('tok')).toBe(false)
+  })
+
+  test("logs Cloudflare's reason code when the check fails", async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    cloudflareAnswers({
+      success: false,
+      'error-codes': ['invalid-input-response', 'timeout-or-duplicate'],
+    })
+    expect(await verifyTurnstile('tok')).toBe(false)
+    expect(log).toHaveBeenCalledWith(
+      'Turnstile check failed: invalid-input-response, timeout-or-duplicate',
+    )
+  })
+
+  test('never logs anything that is not a plain reason code', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    cloudflareAnswers({
+      success: false,
+      'error-codes': ['secret=turnstile-secret', 42, 'Token: tok'],
+    })
+    expect(await verifyTurnstile('tok')).toBe(false)
+    expect(log).toHaveBeenCalledWith('Turnstile check failed: no reason given')
+    expect(JSON.stringify(log.mock.calls)).not.toMatch(/turnstile-secret|tok\b/)
+  })
+
+  test('logs the HTTP status or that Cloudflare was unreachable', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    cloudflareAnswers({ success: true }, false)
+    expect(await verifyTurnstile('tok')).toBe(false)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('offline'))),
+    )
+    expect(await verifyTurnstile('tok')).toBe(false)
+    expect(log.mock.calls).toEqual([
+      ['Turnstile check failed: Cloudflare HTTP 500'],
+      ['Turnstile check failed: Cloudflare unreachable (TypeError)'],
+    ])
+  })
+
+  test('logs nothing when the check passes', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    cloudflareAnswers({ success: true })
+    expect(await verifyTurnstile('tok')).toBe(true)
+    expect(log).not.toHaveBeenCalled()
   })
 
   test('a missing secret is a server error', async () => {
