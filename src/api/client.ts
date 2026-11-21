@@ -58,6 +58,32 @@ export async function fetchExploreData(): Promise<ExploreData> {
   }
 }
 
+// --- Sign-in -------------------------------------------------------------
+
+export type SignedInUser = { name: string | null; email: string }
+
+// Who is signed in? null when signed out (401) or the server can't be reached.
+export async function fetchMe(): Promise<SignedInUser | null> {
+  try {
+    return await request<SignedInUser>('/api/auth/me')
+  } catch {
+    return null
+  }
+}
+
+export function signInWithGoogle(credential: string, turnstileToken: string) {
+  return request<SignedInUser>('/api/auth/google', {
+    method: 'POST',
+    body: JSON.stringify({ credential, turnstileToken }),
+  })
+}
+
+export function signOut() {
+  return request<void>('/api/auth/logout', { method: 'POST' })
+}
+
+// --- My Report -------------------------------------------------------------
+
 export function listSavedFacts() {
   return request<SavedFact[]>('/api/saved-facts')
 }

@@ -1,43 +1,44 @@
-import { useState, type ReactNode } from 'react'
-import type { User } from './auth.ts'
-import { AuthContext, DEMO_USER } from './auth.ts'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { fetchMe, signOut as apiSignOut } from '../api/client.ts'
+import { AuthContext, type AuthValue, type User } from './auth.ts'
 
-const STORAGE_KEY = 'demoSignedIn'
-
-function wasSignedIn() {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === 'yes'
-  } catch {
-    return false
-  }
-}
-
-function remember(signedIn: boolean) {
-  try {
-    if (signedIn) localStorage.setItem(STORAGE_KEY, 'yes')
-    else localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    // Not remembered, but sign-in still works for this visit.
-  }
-}
-
+// Holds the real sign-in state for the whole app, from GET /api/auth/me.
 function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() =>
-    wasSignedIn() ? DEMO_USER : null,
-  )
+  const [user, setUser] = useState<User | null>(null)
+  const [status, setStatus] = useState<AuthValue['status']>('loading')
 
-  function signIn() {
-    remember(true)
-    setUser(DEMO_USER)
-  }
+  const refresh = useCallback(async () => {
+    const me = await fetchMe()
+    setUser(me)
+    setStatus(me ? 'signedIn' : 'signedOut')
+  }, [])
 
-  function signOut() {
-    remember(false)
+  useEffect(() => {
+    let cancelled = false
+    fetchMe().then((me) => {
+      if (cancelled) return
+      setUser(me)
+      setStatus(me ? 'signedIn' : 'signedOut')
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // Always shows "signed out", even if the request fails (e.g. offline);
+  // the cookie then simply expires on its own.
+  const signOut = useCallback(async () => {
+    try {
+      await apiSignOut()
+    } catch {
+      // nothing more to do
+    }
     setUser(null)
-  }
+    setStatus('signedOut')
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ user, signIn, signOut }}>
+    <AuthContext.Provider value={{ status, user, refresh, signOut }}>
       {children}
     </AuthContext.Provider>
   )

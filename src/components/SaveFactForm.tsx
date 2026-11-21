@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { useAuth } from '../auth/auth.ts'
 import { NOTE_MAX_LENGTH } from '../lib/savedFactInput.ts'
 import { createSavedFact } from '../api/client.ts'
@@ -11,7 +11,8 @@ const focusRing =
 type Props = { country: Country; row: RateRow }
 
 function SaveFactForm({ country, row }: Props) {
-  const { user, signIn } = useAuth()
+  const { user } = useAuth()
+  const location = useLocation()
   const [note, setNote] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(
     'idle',
@@ -19,16 +20,16 @@ function SaveFactForm({ country, row }: Props) {
   const [error, setError] = useState('')
 
   if (!user) {
+    const next = encodeURIComponent(location.pathname + location.search)
     return (
       <div className="mt-6 border-t border-slate-200 pt-4 dark:border-slate-700">
         <p>Sign in to save this fact to My Report.</p>
-        <button
-          type="button"
-          onClick={signIn}
-          className={`mt-2 rounded-lg border border-slate-400 px-4 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 ${focusRing}`}
+        <Link
+          to={`/login?next=${next}`}
+          className={`mt-2 inline-block rounded-lg border border-slate-400 px-4 py-2 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 ${focusRing}`}
         >
-          Sign in (demo)
-        </button>
+          Sign in to save
+        </Link>
       </div>
     )
   }

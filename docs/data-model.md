@@ -9,11 +9,11 @@ users ──< saved_facts >── countries ──< obesity_rates
 
 ## Environments
 
-| Git branch           | GitHub environment | Neon branch   | Data                                                                 |
-| -------------------- | ------------------ | ------------- | -------------------------------------------------------------------- |
-| your computer, `dev` | development        | `development` | Countries, rates and the Demo Student                                |
-| `test`               | staging            | `staging`     | Countries, rates and the Demo Student                                |
-| `main`               | production         | `production`  | Countries, rates and, while `ALLOW_DEMO_USER=true`, the Demo Student |
+| Git branch           | GitHub environment | Neon branch   | Data                                                        |
+| -------------------- | ------------------ | ------------- | ----------------------------------------------------------- |
+| your computer, `dev` | development        | `development` | Countries, rates, and users who signed in on dev or locally |
+| `test`               | staging            | `staging`     | Countries, rates, and users who signed in on the test site  |
+| `main`               | production         | `production`  | Countries, rates, and users who signed in on the live site  |
 
 `DATABASE_URL` (pooled connection) is set in `.env` locally and as a secret in each GitHub environment. It is never committed or logged.
 
@@ -86,17 +86,17 @@ users ──< saved_facts >── countries ──< obesity_rates
 
 ## Not stored in the database
 
-| What                          | Where instead                      | Why                           |
-| ----------------------------- | ---------------------------------- | ----------------------------- |
-| Sign-in sessions              | Signed HttpOnly cookie (next week) | Nothing to clean up           |
-| Analytics                     | PostHog                            | Counts only, nothing personal |
-| Donations                     | Stripe (test mode)                 | Stripe keeps payment records  |
-| Health details (BMI, weight…) | **Nowhere, ever**                  | Out of scope by design        |
+| What                          | Where instead                   | Why                           |
+| ----------------------------- | ------------------------------- | ----------------------------- |
+| Sign-in sessions              | Signed HttpOnly cookie (7 days) | Nothing to clean up           |
+| Analytics                     | PostHog                         | Counts only, nothing personal |
+| Donations                     | Stripe (test mode)              | Stripe keeps payment records  |
+| Health details (BMI, weight…) | **Nowhere, ever**               | Out of scope by design        |
 
 ## Loading data
 
-`npm run db:seed` loads `data/obesity_countries.csv` (199 countries, 1990–2022, 6,567 rates; rows without a 3-letter country code are skipped) and creates the fake Demo Student (`DEMO_USER_ID`). It is safe to run again: rows are updated, never duplicated.
+`npm run db:seed` loads `data/obesity_countries.csv` (199 countries, 1990–2022, 6,567 rates; rows without a 3-letter country code are skipped). It is safe to run again: rows are updated, never duplicated. It never creates users.
 
-## Demo user (until Google sign-in)
+## How users are created
 
-API requests act as the Demo Student (`DEMO_USER_ID`). On production this only works while the GitHub variable `ALLOW_DEMO_USER` is `true`; delete that variable, and the Demo Student, when real sign-in ships.
+Only by signing in with Google (`POST /api/auth/google`): after Turnstile and the Google ID token are checked on the server, the user is found or created by `google_sub`, and their name and email are updated. Every protected API call uses `requireUser()`, which reads the signed session cookie and checks the user still exists.
