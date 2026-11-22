@@ -59,6 +59,26 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Stop before deploying if a setting the site needs is missing, so a
+      # broken sign-in never goes live. Prints only NAMES, never values.
+      - name: Check required settings
+        env:
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+          ENV_NAME: ${{ github.ref_name == 'main' && 'production' || (github.ref_name == 'test' && 'staging' || 'development') }}
+        run: |
+          ok=true
+          for name in DATABASE_URL SESSION_SECRET TURNSTILE_SECRET_KEY GOOGLE_CLIENT_ID TURNSTILE_SITE_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set in the GitHub '$ENV_NAME' environment"
+              ok=false
+            fi
+          done
+          if [ -n "$SESSION_SECRET" ] && [ "${#SESSION_SECRET}" -lt 32 ]; then
+            echo "::error::SESSION_SECRET in the GitHub '$ENV_NAME' environment is shorter than 32 characters"
+            ok=false
+          fi
+          $ok && echo "All required settings are present for '$ENV_NAME'."
+          $ok
       - name: Run database migrations
         run: npm run db:migrate
       - name: Build frontend

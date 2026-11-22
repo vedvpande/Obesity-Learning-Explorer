@@ -154,3 +154,6 @@ vite.config.ts.timestamp-*
 
 # macOS Finder files
 .DS_Store
+
+# Neon CLI local context (project/branch ids for this machine)
+.neon
